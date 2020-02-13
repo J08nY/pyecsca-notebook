@@ -1,6 +1,6 @@
 # pyecsca-notebook
 
-[![Build Status](https://travis-ci.com/J08nY/pyecsca-notebook.svg?branch=master)](https://travis-ci.com/J08nY/pyecsca-notebook) ![License: MIT](https://img.shields.io/github/license/J08nY/pyecsca-notebook.svg) [![codecov](https://codecov.io/gh/J08nY/pyecsca-notebook/branch/master/graph/badge.svg)](https://codecov.io/gh/J08nY/pyecsca-notebookn)
+[![Build Status](https://travis-ci.com/J08nY/pyecsca-notebook.svg?branch=master)](https://travis-ci.com/J08nY/pyecsca-notebook) ![License: MIT](https://img.shields.io/github/license/J08nY/pyecsca-notebook.svg)
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 

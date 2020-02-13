@@ -1,0 +1,3 @@
+pyecsca
+jupyter
+tabulate

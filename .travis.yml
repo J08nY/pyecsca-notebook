@@ -1,0 +1,41 @@
+os: linux
+dist: xenial
+language: python
+python: "3.8"
+
+addons:
+  apt:
+    sources:
+      - sourceline: "deb https://labs.picotech.com/debian/ picoscope main"
+        key_url: "https://labs.picotech.com/debian/dists/picoscope/Release.gpg.key"
+    packages:
+      - libps4000
+      - libps6000
+      - swig
+      - gcc
+      - libpcsclite-dev
+
+before_install:
+  - git clone https://github.com/colinoflynn/pico-python
+  - cd pico-python
+  - python setup.py install
+  - cd ..
+  - rm -rf pico-python
+  - git clone https://github.com/picotech/picosdk-python-wrappers
+  - cd picosdk-python-wrappers
+  - python setup.py install
+  - cd ..
+  - rm -rf picosdk-python-wrappers
+  - git clone https://github.com/J08nY/pyecsca
+  - cd pyecsca
+  - pip install -e .
+  - cd ..
+  - pip install pytest-notebook
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - "pytest -v --ignore=pyecsca --color=yes --disable-warnings --nb-test-files --nb-force-regen || echo"
+  - "pytest -v --ignore=pyecsca --color=yes --disable-warnings --nb-test-files"
+
