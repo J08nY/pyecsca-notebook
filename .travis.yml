@@ -28,6 +28,12 @@ before_install:
   - rm -rf picosdk-python-wrappers
   - git clone https://github.com/J08nY/pyecsca
   - cd pyecsca
+  - git submodule update --init --recursive
+  - pip install -e ".[chipwhisperer]"
+  - cd ..
+  - git clone https://github.com/J08nY/pyecsca-codegen
+  - cd pyecsca-codegen
+  - git submodule update --init --recursive
   - pip install -e .
   - cd ..
   - pip install pytest-notebook
@@ -36,6 +42,6 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - "pytest -v --ignore=pyecsca --color=yes --disable-warnings --nb-test-files --nb-force-regen || echo"
-  - "pytest -v --ignore=pyecsca --color=yes --disable-warnings --nb-test-files"
+  - "pytest -v --color=yes --disable-warnings --nb-test-files --nb-force-regen || echo"
+  - "pytest -v --color=yes --disable-warnings --nb-test-files"
 
