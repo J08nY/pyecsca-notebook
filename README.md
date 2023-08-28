@@ -1,6 +1,6 @@
 # pyecsca-notebook
 
-[![Build Status](https://travis-ci.com/J08nY/pyecsca-notebook.svg?branch=master)](https://travis-ci.com/J08nY/pyecsca-notebook) ![License: MIT](https://img.shields.io/github/license/J08nY/pyecsca-notebook.svg)
+![License: MIT](https://img.shields.io/github/license/J08nY/pyecsca-notebook.svg)
 
 **Py**thon **E**lliptic **C**urve cryptography **S**ide-**C**hannel **A**nalysis toolkit.
 
@@ -10,7 +10,7 @@ Notebook package. See the [main repo](https://github.com/J08nY/pyecsca) for more
 
     MIT License
 
-    Copyright (c) 2018-2020 Jan Jancar
+    Copyright (c) 2018-2023 Jan Jancar
     
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
