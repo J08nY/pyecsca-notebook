@@ -54,6 +54,11 @@ the scalar multiplier of ECC implementations, given access to a power side-chann
 The [EPA](re/epa.ipynb) notebook uses the ideas behind the Exceptional Procedure Attack to reverse-engineer
 the coordinate system and formulas of ECC implementations, given access to an error side-channel.
 
+#### ZVP-RE
+
+The [ZVP](re/zvp.ipynb) notebook uses the Zero-Value Point attack-based technique to reverse-engineer
+the coordinate system and formulas of ECC implementations, given access to a power side-channel.
+
 #### Structural
 
 The [structural](re/structural.ipynb) notebook explores the structure of scalar multiplers and addition
