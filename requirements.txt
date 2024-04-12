@@ -2,3 +2,4 @@ pyecsca
 pyecsca-codegen
 jupyter
 tabulate
+seaborn
