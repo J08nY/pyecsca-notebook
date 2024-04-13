@@ -288,6 +288,9 @@ def _text_color(value, vmax, vmin, threshold):
 
 
 def _plot_symmetric(rate, cmap, name, unit, xticks, xlabel, yticks, ylabel, color_threshold, vmin=None, vmax=None, baseline=None):
+    vmin = np.min(rate) if vmin is None else vmin
+    vmax = np.max(rate) if vmax is None else vmax
+    
     fig, ax = plt.subplots()
     im = ax.imshow(rate.T, cmap=cmap, origin="lower", vmin=vmin, vmax=vmax)
     cbar_ax = fig.add_axes((0.85, 0.15, 0.04, 0.69))
@@ -295,8 +298,6 @@ def _plot_symmetric(rate, cmap, name, unit, xticks, xlabel, yticks, ylabel, colo
     cbar.ax.set_ylabel(name, rotation=-90, va="bottom")
     if baseline:
         cbar.ax.axhline(baseline, color="red", linestyle="--")
-    vmin = np.min(rate) if vmin is None else vmin
-    vmax = np.max(rate) if vmin is None else vmin
     
     ax.set_xticks(np.arange(len(xticks)), labels=xticks)
     ax.set_yticks(np.arange(len(yticks)), labels=yticks)
@@ -310,20 +311,20 @@ def _plot_symmetric(rate, cmap, name, unit, xticks, xlabel, yticks, ylabel, colo
     return fig
 
 
-def query_rate_symmetric(query_rate):
-    return _plot_symmetric(query_rate, mako, "Oracle query rate (%)", "%", errs, "error probability", majs, "majority vote", 0.5)
-
-
 def success_rate_symmetric(correct_rate, baseline=None):
     return _plot_symmetric(correct_rate, viridis, "Success rate (%)", "%", errs, "error probability", majs, "majority vote", 0.8, vmin=0, vmax=100, baseline=baseline)
+
+
+def precise_rate_symmetric(precise_rate):
+    return _plot_symmetric(precise_rate, viridis, "Precision (%)", "%", errs, "error probability", majs, "majority vote", 0.8, vmin=0, vmax=100)
 
 
 def amount_rate_symmetric(amount_rate):
     return _plot_symmetric(amount_rate, plasma, "Result size", "", errs, "error probability", majs, "majority vote", 0.5)
 
 
-def precise_rate_symmetric(precise_rate):
-    return _plot_symmetric(precise_rate, viridis, "Precision", "", errs, "error probability", majs, "majority vote", 0.8, vmin=0, vmax=100)
+def query_rate_symmetric(query_rate):
+    return _plot_symmetric(query_rate, mako, "Oracle query rate", "", errs, "error probability", majs, "majority vote", 0.5)
 
 
 def success_rate_vs_query_rate_symmetric(query_rate, correct_rate):
@@ -352,23 +353,23 @@ def success_rate_vs_majority_symmetric(correct_rate):
     return fig
 
 
-def query_rate_asymmetric(query_rate_b):
+def _plot_asymmetric(rate, cmap, name, unit, color_threshold, vmin=None, vmax=None, baseline=None):
+    vmin = np.min(rate) if vmin is None else vmin
+    vmax = np.max(rate) if vmax is None else vmax
+
     fig, axs = plt.subplots(nrows=2, ncols=3, sharex="col", sharey="row")
-    vmin = np.min(query_rate_b)
-    vmax = np.max(query_rate_b)
-    
     for row in range(2):
         for col in range(3):
             ax = axs[row, col]
             level = row * 3 + col
-            query_rate_level = query_rate_b.isel(majority=level)
-            im = ax.imshow(query_rate_level.T, cmap=mako, vmin=vmin, vmax=vmax, origin="lower")
+            rate_level = rate.isel(majority=level)
+            im = ax.imshow(rate_level.T, cmap=cmap, vmin=vmin, vmax=vmax, origin="lower")
             ax.set_xticks(np.arange(len(errs)), labels=errs)
             ax.set_yticks(np.arange(len(errs)), labels=errs)
             for i in range(len(errs)):
                 for j in range(len(errs)):
-                    q_rate = query_rate_level[i, j]
-                    text = ax.text(i, j, f"{q_rate:.0f}", ha="center", va="center", color=_text_color(q_rate, vmax, vmin, 0.5))
+                    val = rate_level[i, j]
+                    text = ax.text(i, j, f"{val:.0f}{unit}", ha="center", va="center", color=_text_color(val, vmax, vmin, color_threshold))
             ax.set_xlabel("$e_1$")
             ax.set_ylabel("$e_O$")
             ax.set_title(majs[level])
@@ -376,88 +377,26 @@ def query_rate_asymmetric(query_rate_b):
     fig.tight_layout(h_pad=1.5, rect=(0, 0, 0.9, 1))
     cbar_ax = fig.add_axes((0.9, 0.10, 0.02, 0.84))
     cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Oracle query rate", rotation=-90, va="bottom")
-    return fig
-
-
-def success_rate_asymmetric(correct_rate_b, baseline):
-    fig, axs = plt.subplots(nrows=2, ncols=3, sharex="col", sharey="row")
-    for row in range(2):
-        for col in range(3):
-            ax = axs[row, col]
-            level = row * 3 + col
-            correct_rate_level = correct_rate_b.isel(majority=level)
-            im = ax.imshow(correct_rate_level.T, cmap=viridis, vmin=0, vmax=100, origin="lower")
-            ax.set_xticks(np.arange(len(errs)), labels=errs)
-            ax.set_yticks(np.arange(len(errs)), labels=errs)
-            for i in range(len(errs)):
-                for j in range(len(errs)):
-                    c_rate = correct_rate_level[i, j]
-                    text = ax.text(i, j, f"{c_rate:.0f}%", ha="center", va="center", color=_text_color(c_rate, 100, 0, 0.5))
-            ax.set_xlabel("$e_1$")
-            ax.set_ylabel("$e_O$")
-            ax.set_title(majs[level])
-    fig.set_size_inches((10,6))
-    fig.tight_layout(h_pad=1.5, rect=(0, 0, 0.9, 1))
-    cbar_ax = fig.add_axes((0.9, 0.10, 0.02, 0.84))
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Success rate", rotation=-90, va="bottom")
+    cbar.ax.set_ylabel(name, rotation=-90, va="bottom")
     if baseline:
         cbar.ax.axhline(baseline, color="red", linestyle="--")
     return fig
 
 
-def amount_rate_asymmetric(amount_rate_b):
-    fig, axs = plt.subplots(nrows=2, ncols=3, sharex="col", sharey="row")
-    vmin = np.min(amount_rate_b)
-    vmax = np.max(amount_rate_b)
-    
-    for row in range(2):
-        for col in range(3):
-            ax = axs[row, col]
-            level = row * 3 + col
-            amount_rate_level = amount_rate_b.isel(majority=level)
-            im = ax.imshow(amount_rate_level.T, cmap=plasma, vmin=vmin, vmax=vmax, origin="lower")
-            ax.set_xticks(np.arange(len(errs)), labels=errs)
-            ax.set_yticks(np.arange(len(errs)), labels=errs)
-            for i in range(len(errs)):
-                for j in range(len(errs)):
-                    a_rate = amount_rate_level[i, j]
-                    text = ax.text(i, j, f"{a_rate:.0f}", ha="center", va="center", color=_text_color(a_rate, vmax, vmin, 0.5))
-            ax.set_xlabel("$e_1$")
-            ax.set_ylabel("$e_O$")
-            ax.set_title(majs[level])
-    fig.set_size_inches((10,6))
-    fig.tight_layout(h_pad=1.5, rect=(0, 0, 0.9, 1))
-    cbar_ax = fig.add_axes((0.9, 0.10, 0.02, 0.84))
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Result size", rotation=-90, va="bottom")
-    return fig
+def success_rate_asymmetric(correct_rate_b, baseline=None):
+    return _plot_asymmetric(correct_rate_b, viridis, "Success rate (%)", "%", 0.8, vmin=0, vmax=100, baseline=baseline)
 
 
 def precise_rate_asymmetric(precise_rate_b):
-    fig, axs = plt.subplots(nrows=2, ncols=3, sharex="col", sharey="row")
-    for row in range(2):
-        for col in range(3):
-            ax = axs[row, col]
-            level = row * 3 + col
-            precise_rate_level = precise_rate_b.isel(majority=level)
-            im = ax.imshow(precise_rate_level.T, cmap=viridis, vmin=0, vmax=100, origin="lower")
-            ax.set_xticks(np.arange(len(errs)), labels=errs)
-            ax.set_yticks(np.arange(len(errs)), labels=errs)
-            for i in range(len(errs)):
-                for j in range(len(errs)):
-                    p_rate = precise_rate_level[i, j]
-                    text = ax.text(i, j, f"{p_rate:.0f}%", ha="center", va="center", color=_text_color(p_rate, 100, 0, 0.5))
-            ax.set_xlabel("$e_1$")
-            ax.set_ylabel("$e_O$")
-            ax.set_title(majs[level])
-    fig.set_size_inches((10,6))
-    fig.tight_layout(h_pad=1.5, rect=(0, 0, 0.9, 1))
-    cbar_ax = fig.add_axes((0.9, 0.10, 0.02, 0.84))
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Precision rate", rotation=-90, va="bottom")
-    return fig
+    return _plot_asymmetric(precise_rate_b, viridis, "Precision (%)", "%", 0.8, vmin=0, vmax=100)
+
+
+def amount_rate_asymmetric(amount_rate_b):
+    return _plot_asymmetric(amount_rate_b, plasma, "Result size", "", 0.5)
+
+
+def query_rate_asymmetric(query_rate_b):
+    return _plot_asymmetric(query_rate_b, mako, "Oracle query rate", "", 0.5)
 
 
 def success_rate_vs_majority_asymmetric(correct_rate_b):
@@ -481,91 +420,17 @@ def success_rate_vs_majority_asymmetric(correct_rate_b):
     return fig
 
 
-def query_rate_binomial(query_rate):
-    fig, ax = plt.subplots()
-    im = ax.imshow(query_rate.T, cmap=mako, origin="lower")
-    cbar_ax = fig.add_axes((0.85, 0.15, 0.04, 0.69))
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Oracle query rate", rotation=-90, va="bottom")
-
-    vmin = np.min(query_rate)
-    vmax = np.max(query_rate)
-    
-    ax.set_xticks(np.arange(len(nums)), labels=nums)
-    ax.set_yticks(np.arange(len(smpls)), labels=smpls)
-    ax.set_xlabel("binom n")
-    ax.set_ylabel("samples")
-    for i in range(len(nums)):
-        for j in range(len(smpls)):
-            q_rate = query_rate[i, j]
-            text = ax.text(i, j, f"{q_rate:.1f}",
-                           ha="center", va="center", color=_text_color(q_rate, vmax, vmin, 0.5))
-    return fig
-
-
-def success_rate_binomial(correct_rate, baseline):
-    fig, ax = plt.subplots()
-    im = ax.imshow(correct_rate.T, vmin=0, cmap=viridis, origin="lower")
-    cbar_ax = fig.add_axes((0.85, 0.15, 0.04, 0.69))
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Success rate", rotation=-90, va="bottom")
-    if baseline:
-        cbar.ax.axhline(baseline, color="red", linestyle="--")
-
-    vmin = 0
-    vmax = np.max(correct_rate)
-    
-    ax.set_xticks(np.arange(len(nums)), labels=nums)
-    ax.set_yticks(np.arange(len(smpls)), labels=smpls)
-    ax.set_xlabel("binom n")
-    ax.set_ylabel("samples")
-    for i in range(len(nums)):
-        for j in range(len(smpls)):
-            c_rate = correct_rate[i, j]
-            text = ax.text(i, j, f"{c_rate:.1f}%",
-                           ha="center", va="center", color=_text_color(c_rate, vmax, vmin, 0.8))
-    return fig
-
-
-def amount_rate_binomial(amount_rate):
-    fig, ax = plt.subplots()
-    im = ax.imshow(amount_rate.T, cmap=plasma, origin="lower")
-    cbar_ax = fig.add_axes((0.85, 0.15, 0.04, 0.69))
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Result size", rotation=-90, va="bottom")
-
-    vmin = np.min(amount_rate)
-    vmax = np.max(amount_rate)
-    
-    ax.set_xticks(np.arange(len(nums)), labels=nums)
-    ax.set_yticks(np.arange(len(smpls)), labels=smpls)
-    ax.set_xlabel("binom n")
-    ax.set_ylabel("samples")
-    for i in range(len(nums)):
-        for j in range(len(smpls)):
-            a_rate = amount_rate[i, j]
-            text = ax.text(i, j, f"{a_rate:.1f}",
-                           ha="center", va="center", color=_text_color(a_rate, vmax, vmin, 0.5))
-    return fig
+def success_rate_binomial(correct_rate, baseline=None):
+    return _plot_symmetric(correct_rate, viridis, "Success rate (%)", "%", nums, "binom n", smpls, "samples", 0.8, vmin=0, vmax=100, baseline=baseline)
 
 
 def precise_rate_binomial(precise_rate):
-    fig, ax = plt.subplots()
-    im = ax.imshow(precise_rate.T, vmin=0, cmap=viridis, origin="lower")
-    cbar_ax = fig.add_axes((0.85, 0.15, 0.04, 0.69))
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Precision", rotation=-90, va="bottom")
+    return _plot_symmetric(precise_rate, viridis, "Precision (%)", "%", nums, "binom n", smpls, "samples", 0.8, vmin=0, vmax=100)
 
-    vmin = 0
-    vmax = np.max(precise_rate)
-    
-    ax.set_xticks(np.arange(len(nums)), labels=nums)
-    ax.set_yticks(np.arange(len(smpls)), labels=smpls)
-    ax.set_xlabel("binom n")
-    ax.set_ylabel("samples")
-    for i in range(len(nums)):
-        for j in range(len(smpls)):
-            p_rate = precise_rate[i, j]
-            text = ax.text(i, j, f"{p_rate:.1f}%",
-                           ha="center", va="center", color=_text_color(p_rate, vmax, vmin, 0.8))
-    return fig
+
+def amount_rate_binomial(amount_rate):
+    return _plot_symmetric(amount_rate, plasma, "Result size", "", nums, "binom n", smpls, "samples", 0.5)
+
+
+def query_rate_binomial(query_rate):
+    return _plot_symmetric(query_rate, mako, "Oracle query rate", "", nums, "binom n", smpls, "samples", 0.5)
