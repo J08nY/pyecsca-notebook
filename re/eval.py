@@ -295,6 +295,7 @@ def _plot_symmetric(rate, cmap, name, unit, xticks, xlabel, yticks, ylabel, colo
     im = ax.imshow(rate.T, cmap=cmap, origin="lower", vmin=vmin, vmax=vmax)
     cbar_ax = fig.add_axes((0.85, 0.15, 0.04, 0.69))
     cbar = fig.colorbar(im, cax=cbar_ax)
+    cbar.ax.yaxis.set_label_coords(2.5, 0.5);
     cbar.ax.set_ylabel(name, rotation=-90, va="bottom")
     if baseline:
         cbar.ax.axhline(baseline, color="red", linestyle="--")
@@ -377,6 +378,7 @@ def _plot_asymmetric(rate, cmap, name, unit, color_threshold, vmin=None, vmax=No
     fig.tight_layout(h_pad=1.5, rect=(0, 0, 0.9, 1))
     cbar_ax = fig.add_axes((0.9, 0.10, 0.02, 0.84))
     cbar = fig.colorbar(im, cax=cbar_ax)
+    cbar.ax.yaxis.set_label_coords(2.5, 0.5);
     cbar.ax.set_ylabel(name, rotation=-90, va="bottom")
     if baseline:
         cbar.ax.axhline(baseline, color="red", linestyle="--")
@@ -414,7 +416,7 @@ def success_rate_vs_majority_asymmetric(correct_rate_b):
         ax.plot(majs, crs, label=f"total_error = {total_err}")
     ax.set_xticks(majs)
     ax.set_xlabel("majority")
-    ax.set_ylabel("success rate")
+    ax.set_ylabel("success rate (%)")
     ax.legend(bbox_to_anchor=(1, 1.02))
     fig.tight_layout()
     return fig
@@ -434,3 +436,15 @@ def amount_rate_binomial(amount_rate):
 
 def query_rate_binomial(query_rate):
     return _plot_symmetric(query_rate, mako, "Oracle query rate", "", nums, "binom n", smpls, "samples", 0.5)
+
+
+def store(path, correct_rate, precise_rate, amount_rate, query_rate):
+    vs = {"correct_rate": correct_rate, "precise_rate": precise_rate, "amount_rate": amount_rate, "query_rate": query_rate}
+    ds = xr.Dataset(data_vars=vs)
+    ds.to_netcdf(path)
+
+
+def load(path):
+    ds = xr.open_dataset(path)
+    return ds.correct_rate, ds.precise_rate, ds.amount_rate, ds.query_rate
+
