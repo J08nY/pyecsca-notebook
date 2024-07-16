@@ -1,5 +1,6 @@
 pyecsca
 pyecsca-codegen
 jupyter
+ipympl
 tabulate
 seaborn
